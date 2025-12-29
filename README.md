@@ -44,9 +44,10 @@ GAL_SIM 是一个基于Python和FastAPI的Galgame对话模拟项目，通过接�
    编辑 `.env` 文件，填入你的LLM API密钥：
    ```env
    LLM_API_KEY=your_api_key_here
-   LLM_BASE_URL=https://api.openai.com/v1  # 可选，自定义API基础URL
-   LLM_MODEL=gpt-3.5-turbo  # 可选，自定义模型名称
+   LLM_BASE_URL=https://api.openai.com/v1  # 可选，自定义endpoint
+   LLM_MODEL=gpt-3.5-turbo  # 可选，模型名称
    ```
+> ⚠️Note: 需要注意，endpoint与模型名称需要查询相应模型官方API文档
 
 ## 启动应用
 
