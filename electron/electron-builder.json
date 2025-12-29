@@ -1,0 +1,31 @@
+{
+  "appId": "com.gal-sim.app",
+  "productName": "GAL-SIM",
+  "directories": {
+    "output": "dist"
+  },
+  "files": [
+    "main.js",
+    "preload.js",
+    "package.json"
+  ],
+  "extraResources": [
+    {
+      "from": "../",
+      "to": "app",
+      "filter": ["**/*", "!node_modules", "!venv", "!*.py", "!*.pyc", "!__pycache__", "!*.git*"]
+    }
+  ],
+  "win": {
+    "target": "nsis",
+    "icon": "../gal_sim/static/favicon.ico"
+  },
+  "mac": {
+    "target": "dmg",
+    "icon": "../gal_sim/static/favicon.ico"
+  },
+  "linux": {
+    "target": "AppImage",
+    "icon": "../gal_sim/static/favicon.ico"
+  }
+}
