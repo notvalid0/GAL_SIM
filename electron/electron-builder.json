@@ -27,6 +27,18 @@
     {
       "from": "../.env.example",
       "to": "app/.env.example"
+    },
+    {
+      "from": "../setup_dependencies.sh",
+      "to": "app/setup_dependencies.sh"
+    },
+    {
+      "from": "../setup_dependencies.bat",
+      "to": "app/setup_dependencies.bat"
+    },
+    {
+      "from": "../USER_GUIDE.md",
+      "to": "app/USER_GUIDE.md"
     }
   ],
   "win": {
