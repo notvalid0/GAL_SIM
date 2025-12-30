@@ -5,6 +5,7 @@ const { spawn, exec } = require('child_process');
 
 let mainWindow;
 let pythonProcess;
+let serverReady = false;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -22,9 +23,13 @@ function createWindow() {
   if (isDev) {
     mainWindow.loadURL('http://localhost:8000');
   } else {
-    // 启动FastAPI服务器
-    startFastAPIServer();
-    mainWindow.loadURL('http://localhost:8000');
+    // 启动FastAPI服务器并等待其就绪
+    startFastAPIServer().then(() => {
+      mainWindow.loadURL('http://localhost:8000');
+    }).catch((err) => {
+      console.error('Failed to start FastAPI server:', err);
+      mainWindow.loadURL('http://localhost:8000'); // 尝试连接，即使启动失败
+    });
   }
 
   if (isDev) {
@@ -34,73 +39,70 @@ function createWindow() {
 
 // 启动FastAPI服务器
 function startFastAPIServer() {
-  const resourcesPath = isDev 
-    ? path.join(__dirname, '..') 
-    : process.resourcesPath;
-  
-  const appPath = isDev
-    ? path.join(__dirname, '../run_server.py')
-    : path.join(resourcesPath, 'app/run_server.py');
-  
-  // 根据操作系统确定Python可执行文件路径
-  let pythonCmd = 'python3';
-  
-  if (process.platform === 'win32') {
-    pythonCmd = 'python';
-  }
-  
-  const workingDir = isDev
-    ? path.join(__dirname, '..')
-    : path.join(resourcesPath, 'app');
-  
-  console.log('Starting FastAPI server...');
-  console.log('Python command:', pythonCmd);
-  console.log('App path:', appPath);
-  console.log('Working directory:', workingDir);
-  
-  pythonProcess = spawn(pythonCmd, [appPath], {
-    cwd: workingDir,
-    env: {
-      ...process.env,
-      PYTHONUNBUFFERED: '1'
-    }
-  });
-
-  let serverReady = false;
-
-  pythonProcess.stdout.on('data', (data) => {
-    const output = data.toString();
-    console.log(`FastAPI: ${output}`);
+  return new Promise((resolve, reject) => {
+    const resourcesPath = isDev 
+      ? path.join(__dirname, '..') 
+      : process.resourcesPath;
     
-    // 检测服务器是否已启动
-    if (output.includes('Uvicorn running on') || output.includes('Application startup complete')) {
-      serverReady = true;
-      console.log('FastAPI server is ready');
+    const appPath = isDev
+      ? path.join(__dirname, '../run_server.py')
+      : path.join(resourcesPath, 'app/run_server.py');
+    
+    // 根据操作系统确定Python可执行文件路径
+    let pythonCmd = 'python3';
+    
+    if (process.platform === 'win32') {
+      pythonCmd = 'python';
     }
-  });
-
-  pythonProcess.stderr.on('data', (data) => {
-    console.error(`FastAPI Error: ${data}`);
-  });
-
-  pythonProcess.on('close', (code) => {
-    console.log(`FastAPI process exited with code ${code}`);
-  });
-  
-  // 等待服务器启动，使用轮询检查
-  const maxWaitTime = 30000; // 最多等待30秒
-  const checkInterval = 500; // 每500ms检查一次
-  let waitedTime = 0;
-  
-  const checkServer = setInterval(() => {
-    if (serverReady || waitedTime >= maxWaitTime) {
-      clearInterval(checkServer);
-      if (!serverReady) {
-        console.warn('Server may not be ready yet, but proceeding anyway');
+    
+    const workingDir = isDev
+      ? path.join(__dirname, '..')
+      : path.join(resourcesPath, 'app');
+    
+    console.log('Starting FastAPI server...');
+    console.log('Python command:', pythonCmd);
+    console.log('App path:', appPath);
+    console.log('Working directory:', workingDir);
+    
+    pythonProcess = spawn(pythonCmd, [appPath], {
+      cwd: workingDir,
+      env: {
+        ...process.env,
+        PYTHONUNBUFFERED: '1'
       }
-    }
-    waitedTime += checkInterval;
-  }, checkInterval);
+    });
+
+    pythonProcess.stdout.on('data', (data) => {
+      const output = data.toString();
+      console.log(`FastAPI: ${output}`);
+      
+      // 检测服务器是否已启动
+      if (!serverReady && (output.includes('Uvicorn running on') || output.includes('Application startup complete'))) {
+        serverReady = true;
+        console.log('FastAPI server is ready');
+        resolve();
+      }
+    });
+
+    pythonProcess.stderr.on('data', (data) => {
+      console.error(`FastAPI Error: ${data}`);
+    });
+
+    pythonProcess.on('close', (code) => {
+      console.log(`FastAPI process exited with code ${code}`);
+      if (!serverReady) {
+        reject(new Error(`Server exited with code ${code} before becoming ready`));
+      }
+    });
+    
+    // 设置超时，防止无限等待
+    setTimeout(() => {
+      if (!serverReady) {
+        console.warn('Server startup timeout, proceeding anyway');
+        resolve(); // 超时后仍然继续，而不是失败
+      }
+    }, 30000); // 30秒超时
+  });
 }
 
 app.whenReady().then(() => {
