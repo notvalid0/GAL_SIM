@@ -47,6 +47,10 @@ if not exist "%~dp0requirements.txt" (
 echo 📦 开始安装 Python 依赖...
 echo    这可能需要几分钟时间，请耐心等待
 echo.
+echo 提示: 如果遇到权限问题，可以尝试：
+echo   1. 以管理员身份运行此脚本
+echo   2. 或添加 --user 标志: python -m pip install --user -r requirements.txt
+echo.
 
 REM 安装依赖
 python -m pip install -r "%~dp0requirements.txt"

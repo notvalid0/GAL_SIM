@@ -86,6 +86,8 @@
     "shortcutName": "GAL-SIM"
   },
   "portable": {
-    "artifactName": "${productName}-${version}-portable.${ext}"
+    "artifactName": "${productName}-${version}-portable.${ext}",
+    "requestExecutionLevel": "user",
+    "unpackDirName": "${productName}"
   }
 }

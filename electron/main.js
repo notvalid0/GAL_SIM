@@ -66,8 +66,17 @@ function startFastAPIServer() {
     }
   });
 
+  let serverReady = false;
+
   pythonProcess.stdout.on('data', (data) => {
-    console.log(`FastAPI: ${data}`);
+    const output = data.toString();
+    console.log(`FastAPI: ${output}`);
+    
+    // 检测服务器是否已启动
+    if (output.includes('Uvicorn running on') || output.includes('Application startup complete')) {
+      serverReady = true;
+      console.log('FastAPI server is ready');
+    }
   });
 
   pythonProcess.stderr.on('data', (data) => {
@@ -78,10 +87,20 @@ function startFastAPIServer() {
     console.log(`FastAPI process exited with code ${code}`);
   });
   
-  // 等待服务器启动
-  setTimeout(() => {
-    console.log('FastAPI server should be ready now');
-  }, 3000);
+  // 等待服务器启动，使用轮询检查
+  const maxWaitTime = 30000; // 最多等待30秒
+  const checkInterval = 500; // 每500ms检查一次
+  let waitedTime = 0;
+  
+  const checkServer = setInterval(() => {
+    if (serverReady || waitedTime >= maxWaitTime) {
+      clearInterval(checkServer);
+      if (!serverReady) {
+        console.warn('Server may not be ready yet, but proceeding anyway');
+      }
+    }
+    waitedTime += checkInterval;
+  }, checkInterval);
 }
 
 app.whenReady().then(() => {

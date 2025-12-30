@@ -49,6 +49,10 @@ fi
 echo "📦 开始安装 Python 依赖..."
 echo "   这可能需要几分钟时间，请耐心等待"
 echo ""
+echo "提示: 如果遇到权限问题，可以尝试："
+echo "  1. 使用管理员权限运行此脚本"
+echo "  2. 或添加 --user 标志: $PYTHON_CMD -m pip install --user -r requirements.txt"
+echo ""
 
 # 安装依赖
 $PYTHON_CMD -m pip install -r "$SCRIPT_DIR/requirements.txt"
