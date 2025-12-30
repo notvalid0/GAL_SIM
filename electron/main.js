@@ -98,7 +98,9 @@ function startFastAPIServer() {
     // 设置超时，防止无限等待
     setTimeout(() => {
       if (!serverReady) {
-        console.warn('Server startup timeout, proceeding anyway');
+        console.warn('⚠️ Server startup timeout after 30 seconds');
+        console.warn('   The server may still be starting. If the app does not load,');
+        console.warn('   please check that Python and dependencies are properly installed.');
         resolve(); // 超时后仍然继续，而不是失败
       }
     }, 30000); // 30秒超时

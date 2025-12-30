@@ -112,7 +112,7 @@ echo ""
 
 if [ -d "dist" ]; then
     echo "生成的文件:"
-    ls -lh dist/ | grep -v "^total" | grep -v "^d"
+    find dist/ -maxdepth 1 -type f -name "*.exe" -o -name "*.dmg" -o -name "*.AppImage" -o -name "*.deb" 2>/dev/null | xargs ls -lh 2>/dev/null || echo "  (查看 dist/ 目录)"
 fi
 
 echo ""
