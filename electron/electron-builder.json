@@ -30,6 +30,11 @@
       "to": "app/.env.example"
     },
     {
+      "from": "../.env",
+      "to": "app/.env",
+      "filter": ["**/*"]
+    },
+    {
       "from": "../setup_dependencies.sh",
       "to": "app/setup_dependencies.sh"
     },
