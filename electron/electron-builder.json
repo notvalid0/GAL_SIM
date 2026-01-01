@@ -84,11 +84,13 @@
     "allowToChangeInstallationDirectory": true,
     "createDesktopShortcut": true,
     "createStartMenuShortcut": true,
-    "shortcutName": "GAL-SIM"
+    "shortcutName": "GAL-SIM",
+    "perMachine": false,
+    "deleteAppDataOnUninstall": false
   },
   "portable": {
     "artifactName": "${productName}-${version}-portable.${ext}",
     "requestExecutionLevel": "user",
-    "unpackDirName": "${productName}"
+    "unpackDirName": "GAL-SIM"
   }
 }
