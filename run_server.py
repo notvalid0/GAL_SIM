@@ -18,16 +18,24 @@ def main():
     except Exception as e:
         print(f"⚠️  警告: 无法加载配置 - {e}")
     
-    print("服务器将在 http://0.0.0.0:8000 上启动")
+    print("服务器将在 http://127.0.0.1:8000 上启动")
     print("按 Ctrl+C 停止服务器")
     
-    uvicorn.run(
-        "gal_sim.main:app",
-        host="127.0.0.1",
-        port=8000,
-        reload=False,
-        log_level="info"
-    )
+    try:
+        uvicorn.run(
+            "gal_sim.main:app",
+            host="127.0.0.1",  # 使用127.0.0.1而不是0.0.0.0以提高安全性
+            port=8000,
+            reload=False,
+            log_level="info"
+        )
+    except Exception as e:
+        print(f"❌ 服务器启动失败: {e}")
+        print("请检查以下问题：")
+        print("1. 端口8000是否被占用")
+        print("2. Python依赖是否已正确安装")
+        print("3. .env配置文件是否正确")
+        input("按回车键退出...")
 
 if __name__ == "__main__":
     main()

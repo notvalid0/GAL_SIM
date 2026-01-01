@@ -43,6 +43,20 @@ fi
 echo "✓ Python 版本: $($PYTHON_CMD --version)"
 echo ""
 
+# 检查并确保 .env 文件存在
+if [ ! -f ".env" ]; then
+    echo "⚠️  .env 文件不存在，基于 .env.example 创建默认 .env 文件..."
+    if [ -f ".env.example" ]; then
+        cp .env.example .env
+        echo "✅ 已创建默认 .env 文件"
+    else
+        echo "❌ 未找到 .env.example 文件，无法创建 .env 文件"
+        exit 1
+    fi
+else
+    echo "✅ .env 文件已存在"
+fi
+
 # 进入 electron 目录
 cd electron
 

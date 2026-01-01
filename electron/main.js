@@ -72,13 +72,107 @@ function createWindow() {
       mainWindow.loadURL('http://localhost:8000');
     }).catch((err) => {
       console.error('Failed to start FastAPI server:', err);
-      mainWindow.loadURL('http://localhost:8000'); // 尝试连接，即使启动失败
+      // 如果服务器启动失败，显示错误页面
+      showErrorMessage(err);
     });
   }
 
   if (isDev) {
     mainWindow.webContents.openDevTools();
   }
+}
+
+// 显示错误消息页面
+function showErrorMessage(error) {
+  const errorPage = `
+    <!DOCTYPE html>
+    <html lang="zh-CN">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>GAL-SIM - 启动错误</title>
+        <style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                background: #f5f5f5;
+                margin: 0;
+                padding: 0;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 100vh;
+            }
+            .container {
+                background: white;
+                padding: 2rem;
+                border-radius: 8px;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                max-width: 600px;
+                text-align: center;
+            }
+            h1 {
+                color: #ff4757;
+                margin-top: 0;
+            }
+            .error-details {
+                text-align: left;
+                background: #f8f9fa;
+                padding: 1rem;
+                border-radius: 4px;
+                margin: 1rem 0;
+                font-family: monospace;
+                font-size: 0.9em;
+                white-space: pre-wrap;
+            }
+            .solution {
+                text-align: left;
+                margin: 1rem 0;
+            }
+            .solution li {
+                margin-bottom: 0.5rem;
+            }
+            .btn {
+                background: #3742fa;
+                color: white;
+                border: none;
+                padding: 0.5rem 1rem;
+                border-radius: 4px;
+                cursor: pointer;
+                margin: 0.5rem;
+            }
+            .btn:hover {
+                background: #5352ed;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>❌ 无法启动 GAL-SIM 服务</h1>
+            <p>后端服务器启动失败，应用无法正常工作。</p>
+            
+            <div class="solution">
+                <h3>可能的解决方案：</h3>
+                <ol>
+                    <li><strong>安装 Python 3.8+</strong>：请确保已安装 Python 3.8 或更高版本</li>
+                    <li><strong>安装依赖包</strong>：运行 <code>pip install -r requirements.txt</code></li>
+                    <li><strong>检查端口占用</strong>：确保端口 8000 未被其他程序占用</li>
+                    <li><strong>配置 API 密钥</strong>：在安装目录下的 .env 文件中配置 LLM_API_KEY</li>
+                    <li><strong>检查防火墙设置</strong>：确保应用有网络访问权限</li>
+                </ol>
+            </div>
+            
+            <div class="error-details">
+                错误详情：
+                ${error ? error.toString() : '未知错误'}
+            </div>
+            
+            <p>请按照上述步骤解决问题后重启应用。</p>
+        </div>
+    </body>
+    </html>
+  `;
+  
+  mainWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(errorPage)}`);
 }
 
 // 启动FastAPI服务器
@@ -117,8 +211,13 @@ function startFastAPIServer() {
           execSync('python.exe --version');
           pythonCmd = 'python.exe';
         } catch (e) {
-          console.warn('⚠️ 未找到Python命令，应用可能无法正常工作');
-          pythonCmd = 'python'; // 默认回退
+          try {
+            execSync('py --version');  // Windows上常用的Python启动器
+            pythonCmd = 'py';
+          } catch (e) {
+            console.warn('⚠️ 未找到Python命令，应用可能无法正常工作');
+            pythonCmd = 'python'; // 默认回退
+          }
         }
       }
     }
@@ -185,29 +284,13 @@ function startFastAPIServer() {
     pythonProcess.on('close', (code) => {
       console.log(`FastAPI process exited with code ${code}`);
       if (!serverReady) {
-        // 在Windows环境下，如果服务器启动失败，尝试使用更具体的错误信息
+        // 在Windows环境下，如果服务器启动失败，显示错误信息
         if (process.platform === 'win32') {
           console.error('FastAPI server failed to start on Windows. This may be due to:');
           console.error('1. Python is not installed or not in PATH');
           console.error('2. Required Python packages are not installed');
           console.error('3. Port 8000 is already in use');
           console.error('4. Antivirus software blocking the process');
-          
-          // 尝试打开一个错误提示页面
-          if (mainWindow && !mainWindow.isDestroyed()) {
-            mainWindow.loadFile(path.join(__dirname, 'error.html')).catch(() => {
-              mainWindow.webContents.loadURL(`data:text/html;charset=utf-8,` + 
-                `<h2>无法启动GAL-SIM服务</h2>` +
-                `<p>错误代码: ${code}</p>` +
-                `<p>可能的原因:</p>` +
-                `<ul>` +
-                `<li>Python未安装或未添加到PATH</li>` +
-                `<li>缺少必要的Python包</li>` +
-                `<li>端口8000被占用</li>` +
-                `</ul>` +
-                `<p>请确保已安装Python 3.7+和项目依赖</p>`);
-            });
-          }
         }
         reject(new Error(`Server exited with code ${code} before becoming ready`));
       }

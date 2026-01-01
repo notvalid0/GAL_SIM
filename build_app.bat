@@ -46,6 +46,23 @@ for /f "tokens=*" %%i in ('python --version') do set PYTHON_VERSION=%%i
 echo ✓ Python 版本: %PYTHON_VERSION%
 echo.
 
+REM 检查并确保 .env 文件存在
+if not exist "..\.env" (
+    echo ⚠️  .env 文件不存在，基于 .env.example 创建默认 .env 文件...
+    if exist "..\.env.example" (
+        copy "..\.env.example" "..\.env"
+        echo ✅ 已创建默认 .env 文件
+    ) else (
+        echo ❌ 未找到 .env.example 文件，无法创建 .env 文件
+        pause
+        exit /b 1
+    )
+) else (
+    echo ✅ .env 文件已存在
+)
+
+echo.
+
 REM 进入 electron 目录
 cd electron
 
